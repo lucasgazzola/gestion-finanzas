@@ -1,6 +1,6 @@
-import { TransactionType } from '@prisma/client'
+import { TransactionType } from '../models/Transaction'
 import dbClient from '../database/client'
-import Transaction from '../types/Transaction'
+import Transaction from '../models/Transaction'
 
 export const createTransaction = async (data: Omit<Transaction, 'id'>) => {
   const user = await dbClient.user.findUnique({
