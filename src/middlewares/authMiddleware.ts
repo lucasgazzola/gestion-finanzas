@@ -1,27 +1,30 @@
 import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'
 
-export interface AuthenticatedRequest extends Request {
-  user?: { id: number; email: string; iat: number; exp: number }
+declare global {
+  namespace Express {
+    interface Request {
+      userId: string
+    }
+  }
 }
 
-export const authenticateToken = (
-  req: AuthenticatedRequest,
+
+export const verifyToken = (
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1] // Bearer <token>
+  const token = req.cookies['auth_token']
+  if (!token) return res.status(401).json({ message: 'Unauthorized' })
 
-  if (token == null) return res.sendStatus(401) // Si no hay token, no autorizado
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403) // Token inválido
-
-    req.user = user as AuthenticatedRequest['user']
-
-    next() // Token válido, continuar con la siguiente función de middleware o ruta
-  })
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET as string)
+    req.userId = (decoded as JwtPayload).id
+    next()
+  } catch (error) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
 }

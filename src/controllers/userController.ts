@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { body, param } from 'express-validator'
 import { handleValidationErrors } from '../middlewares/validationMiddleware'
-import { AuthenticatedRequest } from '../middlewares/authMiddleware'
+// import { AuthenticatedRequest } from '../middlewares/authMiddleware'
 
 import {
   registerUserService,
@@ -9,6 +9,7 @@ import {
   getUserByEmailService,
   getUserByIdService,
   getAllUsersService,
+  deleteUserService,
 } from '../services/userService'
 
 export const createUserController = [
@@ -16,20 +17,34 @@ export const createUserController = [
   body('name').isString().notEmpty().withMessage('Name is required'),
   body('email')
     .notEmpty()
+    .withMessage('Email is required')
     .isEmail()
-    .withMessage('Email is required and must be valid'),
+    .withMessage('Invalid email'),
+
   body('password')
     .isString()
     .notEmpty()
+    .withMessage('Password is required')
     .isLength({ min: 6, max: 24 })
-    .withMessage(
-      'Password is required and must be between 6 and 24 characters'
-    ),
+    .withMessage('Password must be between 6 and 24 characters'),
+  body('confirmPassword')
+    .isString()
+    .notEmpty()
+    .withMessage('Confirm password is required')
+    .isLength({ min: 6, max: 24 })
+    .withMessage('Confirm password must be equal to password'),
 
   handleValidationErrors,
 
   async (req: Request, res: Response) => {
     try {
+      if (req.body.password !== req.body.confirmPassword) {
+        return res.status(400).json({ error: 'Passwords do not match' })
+      }
+
+      // Eliminar la confirmación de la contraseña solo usada para la validación
+      delete req.body.confirmPassword
+
       const user = await registerUserService(req.body)
       res.status(201).json(user)
     } catch (error) {
@@ -43,7 +58,11 @@ export const createUserController = [
 ]
 
 export const getUserByEmailController = [
-  param('email').isEmail().notEmpty().withMessage('Invalid email format'),
+  param('email')
+    .isEmail()
+    .withMessage('Invalid email')
+    .notEmpty()
+    .withMessage('Email is required'),
 
   handleValidationErrors,
 
@@ -91,7 +110,7 @@ export const updateUserByIdController = [
   // Validación
   param('id').isInt({ gt: 0 }).withMessage('ID must be a positive integer'),
   body('name').optional().isString(),
-  body('email').optional().isEmail().withMessage('Invalid email format'),
+  body('email').optional().isEmail().withMessage('Invalid email'),
   body('password')
     .isString()
     .optional()
@@ -123,16 +142,13 @@ export const updateUserByIdController = [
   },
 ]
 
-export const getUserProfileController = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
+export const deleteUserController = async (req: Request, res: Response) => {
   try {
-    if (!req.user) return res.status(404).json({ error: 'User not found' })
-
-    const user = await getUserByIdService(req.user?.id)
+    const { email } = req.params
+    const user = await getUserByEmailService(email)
     if (user) {
-      res.status(200).json(user)
+      await deleteUserService(email)
+      res.status(200).json({ message: 'User deleted successfully' })
     } else {
       res.status(404).json({ error: 'User not found' })
     }
@@ -144,6 +160,28 @@ export const getUserProfileController = async (
     }
   }
 }
+
+// export const getUserProfileController = async (
+//   req: AuthenticatedRequest,
+//   res: Response
+// ) => {
+//   try {
+//     if (!req.user) return res.status(404).json({ error: 'User not found' })
+
+//     const user = await getUserByIdService(req.user?.id)
+//     if (user) {
+//       res.status(200).json(user)
+//     } else {
+//       res.status(404).json({ error: 'User not found' })
+//     }
+//   } catch (error) {
+//     if (error instanceof Error) {
+//       res.status(400).json({ error: error.message })
+//     } else {
+//       res.status(500).json({ error: 'Internal server error' })
+//     }
+//   }
+// }
 
 export const getAllUsersController = async (req: Request, res: Response) => {
   try {
