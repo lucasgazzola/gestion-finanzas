@@ -3,6 +3,7 @@ import request from 'supertest'
 import app from '../app'
 
 import dbClient from '../database/client'
+import { deleteUserService } from '../services/userService'
 
 const testUser = {
   name: 'Juan Perez',
@@ -14,21 +15,19 @@ beforeAll(async () => {
   console.log('Running tests...')
   // delete user John Doe
   const { email } = testUser
-  await dbClient.user.deleteMany({
-    where: {
-      email,
-    },
-  })
+  await deleteUserService(email)
 })
 
-describe('Test de CRUD de Usuarios', () => {
+describe('Registro de usuarios', () => {
   const { name, email, password } = testUser
   it('Debe crear un nuevo usuario', async () => {
     const response = await request(app).post('/api/users').send({
       name,
       email,
       password,
+      confirmPassword: password,
     })
+    console.log(response.body)
     expect(response.status).toBe(201)
   })
 
@@ -37,12 +36,49 @@ describe('Test de CRUD de Usuarios', () => {
       name,
       email,
       password,
+      confirmPassword: password,
     })
     expect(response.status).toBe(400)
   })
 
-  it('Debe devolver todos los usuarios', async () => {
-    const response = await request(app).get('/api/users')
-    expect(response.status).toBe(200)
+  it('Debe devolver un error si las contraseñas son distintas', async () => {
+    const response = await request(app)
+      .post('/api/users')
+      .send({
+        name,
+        email,
+        password,
+        confirmPassword: `${password}123`,
+      })
+    expect(response.status).toBe(400)
+  })
+
+  it('Debe devolver un error si el email es inválido', async () => {
+    const response = await request(app).post('/api/users').send({
+      name,
+      email: 'invalid-email',
+      password,
+      confirmPassword: password,
+    })
+    expect(response.status).toBe(400)
+  })
+
+  it('Debe devolver un error si falta algún campo', async () => {
+    const response = await request(app).post('/api/users').send({
+      name,
+      password,
+      confirmPassword: password,
+    })
+    expect(response.status).toBe(400)
+  })
+})
+
+afterAll(async () => {
+  // delete user John Doe
+  const { email } = testUser
+  await dbClient.user.deleteMany({
+    where: {
+      email,
+    },
   })
 })
