@@ -1,13 +1,21 @@
 import express, { Request, Response, NextFunction } from 'express'
-import bodyParser from 'body-parser'
-import userRoutes from './routes/user'
-import authRoutes from './routes/auth'
-import transactionRoutes from './routes/transaction'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+
+import { authRoutes, transactionRoutes, userRoutes } from './routes'
 
 const app = express()
 
 // Middleware para parsear JSON
-app.use(bodyParser.json())
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+)
+app.use(cookieParser())
 
 // Configuración de rutas
 app.use('/api/users', userRoutes)
