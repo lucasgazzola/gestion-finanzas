@@ -4,8 +4,9 @@ import {
   findUserByEmail,
   findUserById,
   findAllUsers,
+  deleteUser,
 } from '../repositories/userRepository'
-import User from '../types/User'
+import User from '../models/User'
 
 export const registerUserService = async (data: Omit<User, 'id'>) => {
   return createUser(data)
@@ -24,6 +25,10 @@ export const updateUserByIdService = async (
   data: Partial<Omit<User, 'id'>>
 ) => {
   return updateUser(id, data)
+}
+
+export const deleteUserService = async (email: User['email']) => {
+  return deleteUser(email)
 }
 
 export const getAllUsersService = async () => {

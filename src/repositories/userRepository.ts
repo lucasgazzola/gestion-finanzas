@@ -2,7 +2,7 @@ const SALT_ROUNDS = 10
 
 import bcrypt from 'bcrypt'
 
-import User from '../types/User'
+import User from '../models/User'
 import dbClient from '../database/client'
 
 export const createUser = async (data: Omit<User, 'id'>) => {
@@ -29,6 +29,11 @@ export const createUser = async (data: Omit<User, 'id'>) => {
 export const findUserByEmail = async (email: User['email']) => {
   return dbClient.user.findUnique({
     where: { email },
+    include: {
+      transactions: true,
+      budgets: true,
+      goals: true,
+    },
   })
 }
 
@@ -84,6 +89,19 @@ export const findAllUsers = async () => {
       budgets: true,
       goals: true,
     },
+  })
+}
+
+export const deleteUser = async (email: User['email']) => {
+  const user = await dbClient.user.findUnique({
+    where: { email },
+  })
+  if (!user) {
+    return
+  }
+
+  return dbClient.user.deleteMany({
+    where: { email },
   })
 }
 
