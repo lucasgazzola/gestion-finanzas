@@ -6,24 +6,28 @@ import User from '../models/User'
 import dbClient from '../database/client'
 
 export const createUser = async (data: Omit<User, 'id'>) => {
-  const existingUser = await dbClient.user.findUnique({
-    where: { email: data.email },
-  })
+  try {
+    const existingUser = await dbClient.user.findUnique({
+      where: { email: data.email },
+    })
 
-  if (existingUser) {
-    throw new Error('Email already exists')
+    if (existingUser) {
+      throw new Error('Email already exists')
+    }
+
+    // Hash de la contraseña
+    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS)
+
+    return dbClient.user.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+      },
+      select: { id: true, email: true, name: true },
+    })
+  } catch (error) {
+    throw error
   }
-
-  // Hash de la contraseña
-  const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS)
-
-  return dbClient.user.create({
-    data: {
-      ...data,
-      password: hashedPassword,
-    },
-    select: { id: true, email: true, name: true },
-  })
 }
 
 export const findUserByEmail = async (email: User['email']) => {
