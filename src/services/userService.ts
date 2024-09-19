@@ -8,29 +8,29 @@ import {
 } from '../repositories/userRepository'
 import User from '../models/User'
 
-export const registerUserService = async (data: Omit<User, 'id'>) => {
+export const registerUserService = (data: Omit<User, 'id'>) => {
   return createUser(data)
 }
 
-export const getUserByEmailService = async (email: User['email']) => {
+export const getUserByEmailService = (email: User['email']) => {
   return findUserByEmail(email)
 }
 
-export const getUserByIdService = async (id: User['id']) => {
+export const getUserByIdService = (id: User['id']) => {
   return findUserById(id)
 }
 
-export const updateUserByIdService = async (
+export const updateUserByIdService = (
   id: User['id'],
   data: Partial<Omit<User, 'id'>>
 ) => {
   return updateUser(id, data)
 }
 
-export const deleteUserService = async (email: User['email']) => {
+export const deleteUserService = (email: User['email']) => {
   return deleteUser(email)
 }
 
-export const getAllUsersService = async () => {
+export const getAllUsersService = () => {
   return findAllUsers()
 }
