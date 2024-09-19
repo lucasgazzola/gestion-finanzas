@@ -6,7 +6,7 @@ type AppLayoutProps = {
 
 function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="flex h-full w-full bg-gradient-to-br from-blue-600 to-cyan-300  justify-center items-center">
+    <div className="flex h-full w-full bg-gradient-to-br from-blue-600 to-cyan-300 py-4 justify-center items-center">
       {children}
     </div>
   )

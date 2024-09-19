@@ -4,11 +4,14 @@ const TransactionList: React.FC<{
   transactions: Transaction[]
 }> = ({ transactions }) => {
   return (
-    <ul>
-      {transactions?.map(transaction => {
-        return <li key={transaction.id}>{transaction.amount}</li>
-      })}
-    </ul>
+    <>
+      <h2>Sus Transacciones: </h2>
+      <ul>
+        {transactions?.map(transaction => {
+          return <li key={transaction.id}>{transaction.amount}</li>
+        })}
+      </ul>
+    </>
   )
 }
 
