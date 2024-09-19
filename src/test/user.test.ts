@@ -1,25 +1,24 @@
 import request from 'supertest'
-
 import app from '../app'
+import {
+  deleteUserService,
+  getUserByEmailService,
+} from '../services/userService'
+import { testUser } from './data'
 
-import dbClient from '../database/client'
-import { deleteUserService } from '../services/userService'
-
-const testUser = {
-  name: 'Juan Perez',
-  email: 'jpasd@example.com',
-  password: 'password123',
-}
+const { name, email, password } = testUser
 
 beforeAll(async () => {
   console.log('Running tests...')
-  // delete user John Doe
-  const { email } = testUser
-  await deleteUserService(email)
+
+  // Elimina el usuario de prueba en caso de que exista
+  const isUser = await getUserByEmailService(email)
+  if (isUser) {
+    await deleteUserService(email)
+  }
 })
 
 describe('Registro de usuarios', () => {
-  const { name, email, password } = testUser
   it('Debe crear un nuevo usuario', async () => {
     const response = await request(app).post('/api/users').send({
       name,
@@ -27,7 +26,6 @@ describe('Registro de usuarios', () => {
       password,
       confirmPassword: password,
     })
-    console.log(response.body)
     expect(response.status).toBe(201)
   })
 
@@ -69,16 +67,18 @@ describe('Registro de usuarios', () => {
       password,
       confirmPassword: password,
     })
+
     expect(response.status).toBe(400)
   })
 })
 
 afterAll(async () => {
-  // delete user John Doe
-  const { email } = testUser
-  await dbClient.user.deleteMany({
-    where: {
-      email,
-    },
-  })
+  // Elimina el usuario de prueba
+  await deleteUserService(email)
 })
+
+/*
+    TODO: Validar el error
+    console.log(response.text)
+     {"errors":[{"type":"field","msg":"Email is required","path":"email","location":"body"},{"type":"field","msg":"Invalid email","path":"email","location":"body"}]}
+    */
