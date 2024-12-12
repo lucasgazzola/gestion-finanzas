@@ -7,14 +7,6 @@ import { ToastType } from '../enums/'
 import { UserDto } from '../../../src/models/User'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-// type ContextValueType = {
-//   user: UserDto
-//   setUser: React.Dispatch<React.SetStateAction<UserDto>>
-//   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
-//   isLoading: boolean
-//   isAuthenticated: boolean
-// }
-
 type ToastMessage = {
   message: string
   type: ToastType
